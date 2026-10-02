@@ -110,7 +110,10 @@ class _AnnouncementFormScreenState extends State<AnnouncementFormScreen> {
       appBar: AppBar(
           title: Text(widget.existing == null
               ? 'Add Announcement / Event'
-              : 'Edit Announcement')),
+              : 'Edit Announcement'),
+          // Ring + OK/Enter handling for the remote's back button.
+          leading:
+              const TvFocusable(focusable: false, child: BackButton())),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 760),

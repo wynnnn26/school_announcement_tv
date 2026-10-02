@@ -27,9 +27,8 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  // A titled panel. When `scroll` is true its content scrolls inside the panel.
-  Widget section(String title, IconData icon, List<Widget> kids, String empty,
-      {required bool scroll}) {
+  // A titled panel. Content stacks; the page (not the panel) scrolls.
+  Widget section(String title, IconData icon, List<Widget> kids, String empty) {
     if (kids.isEmpty)
       kids = [
         Text(empty, style: const TextStyle(fontSize: 20, color: Colors.black54))
@@ -38,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
-          mainAxisSize: scroll ? MainAxisSize.max : MainAxisSize.min,
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [
@@ -60,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ]),
             const Divider(height: 24, color: Color(0xFFD8E6F7)),
-            if (scroll) Expanded(child: ListView(children: kids)) else ...kids,
+            ...kids,
           ],
         ),
       ),
@@ -122,9 +121,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: LayoutBuilder(builder: (context, c) {
-        // Logical pixels: a 1080p TV at devicePixelRatio 2 is only 960x540,
-        // so the thresholds must sit below that or the board never goes wide.
-        final wide = c.maxWidth >= 900 && c.maxHeight >= 500;
+        // A 1080p TV at devicePixelRatio 2 is only 960x540 logical, and the
+        // body is shorter still (it sits below the AppBar), so measure width
+        // only — the wide board scrolls as one page and can never overflow.
+        final wide = c.maxWidth >= 900;
 
         final news = ofType('Announcement');
         final events = ofType('Event');
@@ -133,8 +133,11 @@ class _HomeScreenState extends State<HomeScreen> {
         final featured = announcements.where((a) => a.isFeatured).firstOrNull;
 
         final header = const HeaderWidget();
-        final featuredCard =
-            FeaturedAnnouncementCard(item: featured, tall: wide);
+        // The big banner only when there is vertical room for it; the TV's
+        // short body needs that space for the three-column board below.
+        final featuredCard = TvFocusable(
+            child: FeaturedAnnouncementCard(
+                item: featured, tall: wide && c.maxHeight >= 620));
         final newsSection = section(
             'Announcements (${news.length})',
             Icons.campaign,
@@ -142,22 +145,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 .where((a) => !a.isFeatured)
                 .map((a) => TvFocusable(child: AnnouncementCard(item: a)))
                 .toList(),
-            'No announcements available.',
-            scroll: wide);
+            'No announcements available.');
         final eventSection = section(
             'Upcoming Events (${events.length})',
             Icons.event,
             events
                 .map((e) => TvFocusable(child: EventCard(event: e)))
                 .toList(),
-            'No upcoming events.',
-            scroll: wide);
+            'No upcoming events.');
         final scheduleSection = section(
             'Today\'s Schedule',
             Icons.schedule,
             schedule.isEmpty ? [] : [ScheduleCard(items: schedule)],
-            'No schedule for today.',
-            scroll: wide);
+            'No schedule for today.');
         final reminderSection = section(
             'Reminders (${reminders.length})',
             Icons.notifications_active,
@@ -170,29 +170,31 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: ReminderCard(items: reminders)),
                     )
                   ],
-            'No reminders.',
-            scroll: false);
+            'No reminders.');
         const gap = SizedBox(height: 16);
 
         if (wide) {
-          return Padding(
+          // One scrollable page: a TV body (540 logical minus the AppBar) is
+          // too short for a fixed board, and TvFocusable scrolls the focused
+          // card into view. IntrinsicHeight keeps the three panels level.
+          return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
-            child: Column(children: [
-              header,
-              gap,
-              featuredCard,
-              gap,
-              Expanded(
-                child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  header,
+                  gap,
+                  featuredCard,
+                  gap,
+                  IntrinsicHeight(
+                    child: Row(children: [
                       Expanded(child: newsSection),
                       Expanded(child: eventSection),
                       Expanded(child: scheduleSection),
                     ]),
-              ),
-              reminderSection,
-            ]),
+                  ),
+                  reminderSection,
+                ]),
           );
         }
         // Narrow or short window: everything stacks and the page scrolls.

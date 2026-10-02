@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:school_announcement_tv/main.dart';
 
-// Pretend to be a 1080p TV, start the app.
+// Pretend to be a 1080p TV: 1920x1080 physical at dpr 2 = 960x540 logical,
+// which is what an actual TV reports (dpr 1 would hide layout bugs).
 Future<void> launch(WidgetTester t) async {
   t.view.physicalSize = const Size(1920, 1080);
-  t.view.devicePixelRatio = 1;
+  t.view.devicePixelRatio = 2;
   addTearDown(t.view.reset);
   await t.pumpWidget(const SchoolAnnouncementApp());
 }
@@ -28,6 +29,9 @@ void main() {
   testWidgets('empty form shows both validation errors', (t) async {
     await launch(t);
     await t.tap(find.byTooltip('Add announcement'));
+    await t.pumpAndSettle();
+    // The button sits below the fold on a short TV viewport (960x540).
+    await t.ensureVisible(find.byKey(const Key('submitButton')));
     await t.pumpAndSettle();
     await t.tap(find.byKey(const Key('submitButton')));
     await t.pumpAndSettle();
@@ -64,6 +68,11 @@ void main() {
     final fields = find.byType(TextFormField);
     await t.enterText(fields.at(0), 'Test Notice');
     await t.enterText(fields.at(1), 'Test description');
+    // Let the focused field's scroll-into-view land first, or it fires
+    // during the pump below and yanks the page back off the button.
+    await t.pumpAndSettle();
+    await t.ensureVisible(find.byKey(const Key('submitButton')));
+    await t.pumpAndSettle();
     await t.tap(find.byKey(const Key('submitButton')));
     await t.pumpAndSettle();
     expect(find.text('Announcement added successfully!'), findsOneWidget);

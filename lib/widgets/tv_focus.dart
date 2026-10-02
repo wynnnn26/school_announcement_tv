@@ -43,6 +43,18 @@ class TvFocusable extends StatefulWidget {
 
 class _TvFocusableState extends State<TvFocusable> {
   bool selected = false;
+  double _bottomInset = 0;
+
+  // When the on-screen keyboard opens or closes the layout shrinks; make
+  // sure the focused control stays visible above the keyboard.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final bottom = MediaQuery.maybeViewInsetsOf(context)?.bottom ?? 0;
+    final changed = bottom != _bottomInset;
+    _bottomInset = bottom;
+    if (changed && selected) _scrollIntoView();
+  }
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;

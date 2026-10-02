@@ -215,7 +215,11 @@ class _SummaryScreenState extends State<SummaryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Summary / Management')),
+      appBar: AppBar(
+          title: const Text('Summary / Management'),
+          // Ring + OK/Enter handling for the remote's back button.
+          leading:
+              const TvFocusable(focusable: false, child: BackButton())),
       floatingActionButton: TvFocusable(
         focusable: false,
         onPressed: () => openForm(),

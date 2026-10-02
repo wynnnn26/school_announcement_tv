@@ -75,31 +75,44 @@ class _TvDatePickerState extends State<_TvDatePicker> {
   late int month = widget.initial.month;
   late int day = widget.initial.day;
 
+  /// Real length of the selected month — the Day menu only offers these
+  /// days, so an invalid date like February 31 cannot be selected at all.
+  int get _daysInMonth => DateTime(year, month + 1, 0).day;
+
+  void _setMonth(int v) => setState(() {
+        month = v;
+        if (day > _daysInMonth) day = _daysInMonth;
+      });
+
+  void _setYear(int v) => setState(() {
+        year = v;
+        if (day > _daysInMonth) day = _daysInMonth;
+      });
+
   @override
   Widget build(BuildContext context) {
     const gap = SizedBox(height: 12);
     return AlertDialog(
       title: const Text('Select date'),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [
-        // Day always offers 1..31; a too-large day for a short month is
-        // clamped when the user presses OK (no invalid dropdown state).
-        _field('Day', [for (var d = 1; d <= 31; d++) '$d'], '$day',
-            (v) => setState(() => day = int.parse(v)),
-            autofocus: true),
-        gap,
-        _field('Month', monthNames, monthNames[month - 1],
-            (v) => setState(() => month = monthNames.indexOf(v) + 1)),
-        gap,
-        _field('Year', _years, '$year', (v) => setState(() => year = int.parse(v))),
-      ]),
+      // stretch: every row spans the dialog width, so Down always moves
+      // to the row below (fields → CANCEL → OK) with no spatial gaps.
+      content: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _field('Day', [for (var d = 1; d <= _daysInMonth; d++) '$d'], '$day',
+                (v) => setState(() => day = int.parse(v)),
+                autofocus: true),
+            gap,
+            _field('Month', monthNames, monthNames[month - 1],
+                (v) => _setMonth(monthNames.indexOf(v) + 1)),
+            gap,
+            _field(
+                'Year', _years, '$year', (v) => _setYear(int.parse(v))),
+          ]),
       actions: _actions(
         () => Navigator.pop(context),
-        () => Navigator.pop(
-            context,
-            DateTime(
-                year, month, day > DateTime(year, month + 1, 0).day
-                    ? DateTime(year, month + 1, 0).day
-                    : day)),
+        () => Navigator.pop(context, DateTime(year, month, day)),
       ),
     );
   }
@@ -124,18 +137,23 @@ class _TvTimePickerState extends State<_TvTimePicker> {
     const gap = SizedBox(height: 12);
     return AlertDialog(
       title: const Text('Select time'),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [
-        _field('Hour', [for (var h = 1; h <= 12; h++) '$h'], '$hour12',
-            (v) => setState(() => hour12 = int.parse(v)),
-            autofocus: true),
-        gap,
-        _field('Minute', [for (var m = 0; m < 60; m++) m.toString().padLeft(2, '0')],
-            minute.toString().padLeft(2, '0'),
-            (v) => setState(() => minute = int.parse(v))),
-        gap,
-        _field('AM/PM', const ['AM', 'PM'], pm ? 'PM' : 'AM',
-            (v) => setState(() => pm = v == 'PM')),
-      ]),
+      content: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _field('Hour', [for (var h = 1; h <= 12; h++) '$h'], '$hour12',
+                (v) => setState(() => hour12 = int.parse(v)),
+                autofocus: true),
+            gap,
+            _field(
+                'Minute',
+                [for (var m = 0; m < 60; m++) m.toString().padLeft(2, '0')],
+                minute.toString().padLeft(2, '0'),
+                (v) => setState(() => minute = int.parse(v))),
+            gap,
+            _field('AM/PM', const ['AM', 'PM'], pm ? 'PM' : 'AM',
+                (v) => setState(() => pm = v == 'PM')),
+          ]),
       actions: _actions(
         () => Navigator.pop(context),
         () => Navigator.pop(

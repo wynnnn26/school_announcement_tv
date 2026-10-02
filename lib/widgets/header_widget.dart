@@ -98,7 +98,9 @@ class _HeaderWidgetState extends State<HeaderWidget> {
         border: Border.all(color: sky.withValues(alpha: 0.35), width: 2),
       ),
       child: LayoutBuilder(builder: (context, c) {
-        if (c.maxWidth >= 900) {
+        // 800, not 900: on a 960-wide TV the header's inner width is only
+        // ~888 after padding, and a 900 threshold made it stack.
+        if (c.maxWidth >= 800) {
           return Row(children: [
             Expanded(
                 flex: 3,
