@@ -6,6 +6,7 @@ import '../widgets/event_card.dart';
 import '../widgets/header_widget.dart';
 import '../widgets/reminder_card.dart';
 import '../widgets/schedule_card.dart';
+import '../widgets/tv_focus.dart';
 import 'announcement_form_screen.dart';
 import 'summary_screen.dart';
 
@@ -75,36 +76,45 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           Tooltip(
             message: 'Add announcement',
-            child: TextButton.icon(
+            child: TvFocusable(
+              focusable: false,
               onPressed: () => open(const AnnouncementFormScreen()),
-              icon: const Icon(Icons.add_circle, size: 26),
-              label: const Text('Add',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-              style: TextButton.styleFrom(
-                foregroundColor: navy,
-                backgroundColor: gold,
-                minimumSize: const Size(88, 48),
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+              child: TextButton.icon(
+                autofocus: true, // the remote starts on Add
+                onPressed: () => open(const AnnouncementFormScreen()),
+                icon: const Icon(Icons.add_circle, size: 26),
+                label: const Text('Add',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                style: TextButton.styleFrom(
+                  foregroundColor: navy,
+                  backgroundColor: gold,
+                  minimumSize: const Size(88, 48),
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
               ),
             ),
           ),
           const SizedBox(width: 8),
           Tooltip(
             message: 'Manage announcements',
-            child: TextButton.icon(
+            child: TvFocusable(
+              focusable: false,
               onPressed: () => open(const SummaryScreen()),
-              icon: const Icon(Icons.menu, size: 26),
-              label: const Text('Manage',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.white.withValues(alpha: 0.14),
-                minimumSize: const Size(116, 48),
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+              child: TextButton.icon(
+                onPressed: () => open(const SummaryScreen()),
+                icon: const Icon(Icons.menu, size: 26),
+                label: const Text('Manage',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.white.withValues(alpha: 0.14),
+                  minimumSize: const Size(116, 48),
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
               ),
             ),
           ),
@@ -130,14 +140,16 @@ class _HomeScreenState extends State<HomeScreen> {
             Icons.campaign,
             news
                 .where((a) => !a.isFeatured)
-                .map((a) => AnnouncementCard(item: a))
+                .map((a) => TvFocusable(child: AnnouncementCard(item: a)))
                 .toList(),
             'No announcements available.',
             scroll: wide);
         final eventSection = section(
             'Upcoming Events (${events.length})',
             Icons.event,
-            events.map((e) => EventCard(event: e)).toList(),
+            events
+                .map((e) => TvFocusable(child: EventCard(event: e)))
+                .toList(),
             'No upcoming events.',
             scroll: wide);
         final scheduleSection = section(

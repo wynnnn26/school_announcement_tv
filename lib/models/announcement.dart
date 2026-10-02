@@ -28,9 +28,18 @@ const categories = [
   'General', 'Academic', 'Event', 'Reminder', 'Important', 'Student Affairs'
 ];
 
-const _months = [
+const monthNames = [
   'January', 'February', 'March', 'April', 'May', 'June', 'July',
   'August', 'September', 'October', 'November', 'December'
 ];
 
-String formatDate(DateTime d) => '${_months[d.month - 1]} ${d.day}, ${d.year}';
+String formatDate(DateTime d) => '${monthNames[d.month - 1]} ${d.day}, ${d.year}';
+
+/// Reverse of [formatDate] for 'Month D, YYYY' text; null when unparseable.
+DateTime? parseFormatDate(String s) {
+  final m = RegExp(r'^(\w+) (\d+), (\d+)$').firstMatch(s.trim());
+  if (m == null) return null;
+  final month = monthNames.indexOf(m.group(1)!);
+  if (month == -1) return null;
+  return DateTime(int.parse(m.group(3)!), month + 1, int.parse(m.group(2)!));
+}

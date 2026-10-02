@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../data/sample_data.dart';
 import '../models/announcement.dart';
+import '../widgets/tv_focus.dart';
+import '../widgets/tv_picker_dialogs.dart';
 
 /// Add a new item, or edit one when `existing` is given.
 class AnnouncementFormScreen extends StatefulWidget {
@@ -37,18 +39,25 @@ class _AnnouncementFormScreenState extends State<AnnouncementFormScreen> {
         suffixIcon: icon == null ? null : Icon(icon),
       );
 
+  /// Parse a previously formatted time ('9:46 PM') back into a TimeOfDay.
+  TimeOfDay _parseTime(String s) {
+    final m = RegExp(r'^(\d{1,2}):(\d{2})\s*([AP]M)$').firstMatch(s.trim());
+    if (m == null) return TimeOfDay.now();
+    var h = int.parse(m.group(1)!);
+    final pm = m.group(3) == 'PM';
+    h = h % 12 + (pm ? 12 : 0);
+    return TimeOfDay(hour: h, minute: int.parse(m.group(2)!));
+  }
+
   Future<void> pickDate() async {
-    final d = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime(2020),
-        lastDate: DateTime(2035));
+    final d = await showTvDatePicker(context,
+        initial: parseFormatDate(date.text) ?? DateTime.now());
     if (d != null) date.text = formatDate(d);
   }
 
   Future<void> pickTime() async {
-    final t =
-        await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    final t = await showTvTimePicker(context,
+        initial: _parseTime(time.text));
     if (t != null && mounted) time.text = t.format(context);
   }
 
@@ -112,83 +121,124 @@ class _AnnouncementFormScreenState extends State<AnnouncementFormScreen> {
               child: Form(
                 key: formKey,
                 child: Column(children: [
-                  DropdownButtonFormField<String>(
-                    initialValue: type,
-                    style: big,
-                    decoration: decoration('Type'),
-                    items: itemTypes
-                        .map((t) => DropdownMenuItem(value: t, child: Text(t)))
-                        .toList(),
-                    onChanged: (v) => setState(() => type = v!),
+                  // First control takes focus as soon as the page opens.
+                  TvFocusable(
+                    focusable: false,
+                    child: DropdownButtonFormField<String>(
+                      autofocus: true,
+                      initialValue: type,
+                      style: big,
+                      decoration: decoration('Type'),
+                      items: itemTypes
+                          .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                          .toList(),
+                      onChanged: (v) => setState(() => type = v!),
+                    ),
                   ),
                   gap,
-                  TextFormField(
-                    controller: title,
-                    style: big,
-                    decoration: decoration('Title'),
-                    validator: (v) => requiredField(v, 'Please enter a title.'),
+                  TvFocusable(
+                    focusable: false,
+                    moveFocusOnUpDown: true,
+                    child: TextFormField(
+                      controller: title,
+                      style: big,
+                      decoration: decoration('Title'),
+                      validator: (v) =>
+                          requiredField(v, 'Please enter a title.'),
+                    ),
                   ),
                   gap,
-                  TextFormField(
-                    controller: description,
-                    style: big,
-                    maxLines: 3,
-                    decoration: decoration('Description'),
-                    validator: (v) =>
-                        requiredField(v, 'Please enter a description.'),
+                  TvFocusable(
+                    focusable: false,
+                    moveFocusOnUpDown: true,
+                    child: TextFormField(
+                      controller: description,
+                      style: big,
+                      maxLines: 3,
+                      decoration: decoration('Description'),
+                      validator: (v) =>
+                          requiredField(v, 'Please enter a description.'),
+                    ),
                   ),
                   gap,
                   Row(children: [
                     Expanded(
-                      child: TextFormField(
-                          controller: date,
-                          style: big,
-                          readOnly: true,
-                          onTap: pickDate,
-                          decoration: decoration('Date', Icons.calendar_today)),
+                      // OK opens the picker; Up/Down still move between fields.
+                      child: TvFocusable(
+                        focusable: false,
+                        moveFocusOnUpDown: true,
+                        onPressed: pickDate,
+                        child: TextFormField(
+                            controller: date,
+                            style: big,
+                            readOnly: true,
+                            onTap: pickDate,
+                            decoration:
+                                decoration('Date', Icons.calendar_today)),
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: TextFormField(
-                          controller: time,
-                          style: big,
-                          readOnly: true,
-                          onTap: pickTime,
-                          decoration: decoration('Time', Icons.access_time)),
+                      child: TvFocusable(
+                        focusable: false,
+                        moveFocusOnUpDown: true,
+                        onPressed: pickTime,
+                        child: TextFormField(
+                            controller: time,
+                            style: big,
+                            readOnly: true,
+                            onTap: pickTime,
+                            decoration:
+                                decoration('Time', Icons.access_time)),
+                      ),
                     ),
                   ]),
                   gap,
-                  TextFormField(
-                      controller: location,
+                  TvFocusable(
+                    focusable: false,
+                    moveFocusOnUpDown: true,
+                    child: TextFormField(
+                        controller: location,
+                        style: big,
+                        decoration: decoration('Location', Icons.place)),
+                  ),
+                  gap,
+                  TvFocusable(
+                    focusable: false,
+                    child: DropdownButtonFormField<String>(
+                      initialValue: category,
                       style: big,
-                      decoration: decoration('Location', Icons.place)),
-                  gap,
-                  DropdownButtonFormField<String>(
-                    initialValue: category,
-                    style: big,
-                    decoration: decoration('Category'),
-                    items: categories
-                        .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                        .toList(),
-                    onChanged: (v) => setState(() => category = v!),
+                      decoration: decoration('Category'),
+                      items: categories
+                          .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                          .toList(),
+                      onChanged: (v) => setState(() => category = v!),
+                    ),
                   ),
-                  SwitchListTile(
-                    title: const Text('Show as the featured announcement',
-                        style: TextStyle(fontSize: 18)),
-                    value: featured,
-                    onChanged: (v) => setState(() => featured = v),
+                  TvFocusable(
+                    focusable: false,
+                    child: SwitchListTile(
+                      title: const Text('Show as the featured announcement',
+                          style: TextStyle(fontSize: 18)),
+                      value: featured,
+                      onChanged: (v) => setState(() => featured = v),
+                    ),
                   ),
                   gap,
-                  SizedBox(
-                    width: double.infinity,
-                    height: 60,
-                    child: ElevatedButton.icon(
-                      key: const Key('submitButton'),
-                      onPressed: save,
-                      icon: const Icon(Icons.check),
-                      label: Text(
-                          widget.existing == null ? 'Add' : 'Save Changes',
-                          style: const TextStyle(fontSize: 22)),
+                  TvFocusable(
+                    focusable: false,
+                    onPressed: save,
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 60,
+                      child: ElevatedButton.icon(
+                        key: const Key('submitButton'),
+                        onPressed: save,
+                        icon: const Icon(Icons.check),
+                        label: Text(
+                            widget.existing == null ? 'Add' : 'Save Changes',
+                            style: const TextStyle(fontSize: 22)),
+                      ),
                     ),
                   ),
                 ]),
