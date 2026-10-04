@@ -249,6 +249,9 @@ class _SummaryScreenState extends State<SummaryScreen> {
               child: TvFocusable(
                 focusable: false,
                 moveFocusOnUpDown: true,
+                // Search must not open the on-screen keyboard on a TV the
+                // moment it takes focus; OK opens it when typing is wanted.
+                usesTextInput: true,
                 child: TextField(
                   focusNode: searchNode,
                   autofocus: true,

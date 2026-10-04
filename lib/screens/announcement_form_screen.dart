@@ -142,6 +142,7 @@ class _AnnouncementFormScreenState extends State<AnnouncementFormScreen> {
                   TvFocusable(
                     focusable: false,
                     moveFocusOnUpDown: true,
+                    usesTextInput: true,
                     child: TextFormField(
                       controller: title,
                       style: big,
@@ -154,6 +155,7 @@ class _AnnouncementFormScreenState extends State<AnnouncementFormScreen> {
                   TvFocusable(
                     focusable: false,
                     moveFocusOnUpDown: true,
+                    usesTextInput: true,
                     child: TextFormField(
                       controller: description,
                       style: big,
@@ -200,6 +202,7 @@ class _AnnouncementFormScreenState extends State<AnnouncementFormScreen> {
                   TvFocusable(
                     focusable: false,
                     moveFocusOnUpDown: true,
+                    usesTextInput: true,
                     child: TextFormField(
                         controller: location,
                         style: big,

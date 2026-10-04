@@ -61,6 +61,19 @@ void main() {
     await close(t);
   });
 
+  testWidgets('the three board panels are level', (t) async {
+    await launch(t);
+    await t.pump();
+    // Every section card carries a divider under its title; with the board
+    // Row stretched, all three panels must start at exactly the same y
+    // (the old default alignment left them staggered — report §5).
+    final dividers = find.byType(Divider);
+    final tops = [0, 1, 2].map((i) => t.getRect(dividers.at(i)).top).toList();
+    expect(tops[0], tops[1], reason: 'news and events panels are level');
+    expect(tops[1], tops[2], reason: 'events and schedule panels are level');
+    await close(t);
+  });
+
   testWidgets('valid form adds an item and returns to the display', (t) async {
     await launch(t);
     await t.tap(find.byTooltip('Add announcement'));

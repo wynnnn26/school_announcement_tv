@@ -44,24 +44,28 @@ class _HeaderWidgetState extends State<HeaderWidget> {
       Image.asset('assets/images/school_logo.png', height: 72),
       const SizedBox(width: 14),
       // School identity lives in the AppBar once; here it is the full name only.
-      const Flexible(
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('School of Computer Studies',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold)),
-              SizedBox(height: 2),
-              Text('Concepcion Holy Cross College Inc.',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: gold, fontSize: 16)),
-            ]),
+      // FittedBox scales the block down instead of ellipsizing it — at 960
+      // logical width the 3-part header gives the left block only ~180px.
+      Flexible(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Text('School of Computer Studies',
+                    maxLines: 1,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold)),
+                SizedBox(height: 2),
+                Text('Concepcion Holy Cross College Inc.',
+                    maxLines: 1,
+                    style: TextStyle(color: gold, fontSize: 16)),
+              ]),
+        ),
       ),
     ]);
 

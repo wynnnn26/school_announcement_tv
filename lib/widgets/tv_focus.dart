@@ -11,6 +11,8 @@ import 'header_widget.dart'; // gold
 ///  * OK / Enter / Select runs [onPressed],
 ///  * with [moveFocusOnUpDown], Up/Down move to the previous/next focusable
 ///    instead of moving the text cursor, and OK advances to the next field.
+///  * with [usesTextInput], the on-screen keyboard stays closed while the
+///    remote navigates and opens only when OK is pressed to type.
 ///
 /// Wrap a display-only card as-is (the default): the wrapper itself is
 /// the focus target. Wrap a control (button, text field, dropdown) with
@@ -22,6 +24,7 @@ class TvFocusable extends StatefulWidget {
     required this.child,
     this.focusable = true,
     this.moveFocusOnUpDown = false,
+    this.usesTextInput = false,
     this.onPressed,
   });
 
@@ -34,6 +37,12 @@ class TvFocusable extends StatefulWidget {
   /// Up/Down (and OK) jump between fields instead of moving the cursor.
   final bool moveFocusOnUpDown;
 
+  /// The child is a real text field. On a TV the on-screen keyboard must
+  /// stay closed while the remote navigates (once open, the Android IME
+  /// eats every DPAD key and the user is trapped in the field); it is
+  /// opened only when the user presses OK to type.
+  final bool usesTextInput;
+
   /// Runs on OK / Enter / Select when set.
   final VoidCallback? onPressed;
 
@@ -44,16 +53,30 @@ class TvFocusable extends StatefulWidget {
 class _TvFocusableState extends State<TvFocusable> {
   bool selected = false;
   double _bottomInset = 0;
+  // True between an explicit OK (open the keyboard to type) and the
+  // keyboard actually closing again.
+  bool _imeWanted = false;
 
   // When the on-screen keyboard opens or closes the layout shrinks; make
   // sure the focused control stays visible above the keyboard.
+  // Only runs while subscribed: `build` registers the MediaQuery dependency
+  // for the focused wrapper alone, so a viewport-metrics storm cannot
+  // rebuild every focusable on the board (report bug #3).
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (!selected) return; // not subscribed yet (see build)
     final bottom = MediaQuery.maybeViewInsetsOf(context)?.bottom ?? 0;
     final changed = bottom != _bottomInset;
     _bottomInset = bottom;
-    if (changed && selected) _scrollIntoView();
+    if (!changed) return;
+    if (bottom == 0) _imeWanted = false; // really closed (e.g. BACK)
+    // Safety net: the keyboard came up without us asking (a tap, or a late
+    // TextInput.show) — close it again so the remote keeps its keys.
+    if (widget.usesTextInput && !_imeWanted) {
+      SystemChannels.textInput.invokeMethod('TextInput.hide');
+    }
+    _scrollIntoView();
   }
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
@@ -76,6 +99,13 @@ class _TvFocusableState extends State<TvFocusable> {
         key == LogicalKeyboardKey.select) {
       if (widget.onPressed != null) {
         widget.onPressed!();
+        return KeyEventResult.handled;
+      }
+      if (widget.usesTextInput) {
+        // OK on a text field opens the keyboard — the only way to type on
+        // a TV. The system BACK key closes it; Up/Down keep moving.
+        _imeWanted = true;
+        SystemChannels.textInput.invokeMethod('TextInput.show');
         return KeyEventResult.handled;
       }
       if (widget.moveFocusOnUpDown) {
@@ -107,6 +137,10 @@ class _TvFocusableState extends State<TvFocusable> {
 
   @override
   Widget build(BuildContext context) {
+    // Register the keyboard-inset dependency only while focused: during a
+    // viewport-metrics storm a dependency per focusable would rebuild the
+    // whole board every frame.
+    if (selected) MediaQuery.maybeViewInsetsOf(context);
     return Focus(
       // With focusable: false the wrapper never takes primary focus itself;
       // it only rings and handles keys bubbling up from the control inside.
@@ -115,7 +149,23 @@ class _TvFocusableState extends State<TvFocusable> {
       onFocusChange: (hasFocus) {
         if (!mounted) return;
         setState(() => selected = hasFocus);
-        if (hasFocus) _scrollIntoView();
+        if (!hasFocus) {
+          _imeWanted = false;
+          return;
+        }
+        _scrollIntoView();
+        if (widget.usesTextInput) {
+          // EditableText posts TextInput.show the moment the field gains
+          // focus (it gets a keyboard token from every focus request); on a
+          // real TV that keyboard then swallows every DPAD key. Close it on
+          // the next frame — after EditableText's show — so navigation keys
+          // keep reaching us. OK below reopens it when typing is wanted.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && selected && !_imeWanted) {
+              SystemChannels.textInput.invokeMethod('TextInput.hide');
+            }
+          });
+        }
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 120),

@@ -29,10 +29,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // A titled panel. Content stacks; the page (not the panel) scrolls.
   Widget section(String title, IconData icon, List<Widget> kids, String empty) {
-    if (kids.isEmpty)
+    if (kids.isEmpty) {
       kids = [
         Text(empty, style: const TextStyle(fontSize: 20, color: Colors.black54))
       ];
+    }
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -49,13 +50,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Icon(icon, size: 26, color: navy),
               ),
               const SizedBox(width: 12),
+              // Scale down instead of ellipsizing: a 266px TV panel cannot
+              // hold 'Announcements (4)' at 28px, and a truncated title
+              // reads like a bug (report §5).
               Expanded(
-                child: Text(title,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: navy)),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(title,
+                      maxLines: 1,
+                      style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: navy)),
+                ),
               ),
             ]),
             const Divider(height: 24, color: Color(0xFFD8E6F7)),
@@ -187,11 +195,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   featuredCard,
                   gap,
                   IntrinsicHeight(
-                    child: Row(children: [
-                      Expanded(child: newsSection),
-                      Expanded(child: eventSection),
-                      Expanded(child: scheduleSection),
-                    ]),
+                    // stretch: all three panels start at the same y (the
+                    // default center left them staggered when heights differ).
+                    child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(child: newsSection),
+                          Expanded(child: eventSection),
+                          Expanded(child: scheduleSection),
+                        ]),
                   ),
                   reminderSection,
                 ]),
