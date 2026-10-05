@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'data/notify.dart';
+import 'data/store.dart';
 import 'screens/home_screen.dart';
 import 'widgets/header_widget.dart';
 
-void main() => runApp(const SchoolAnnouncementApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await loadStore(); // restore saved items (first run keeps the sample seeds)
+  runApp(const SchoolAnnouncementApp());
+  NotifyService().start(); // in-app banner+beep: 30s tick, session-only memory
+}
 
 class SchoolAnnouncementApp extends StatelessWidget {
   const SchoolAnnouncementApp({super.key});
@@ -12,6 +19,7 @@ class SchoolAnnouncementApp extends StatelessWidget {
     return MaterialApp(
       title: 'CHCCI • School Announcement TV',
       debugShowCheckedModeBanner: false,
+      navigatorKey: rootNavKey, // banner overlays whatever screen is open
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: navy,

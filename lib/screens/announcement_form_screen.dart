@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/sample_data.dart';
+import '../data/store.dart';
 import '../models/announcement.dart';
 import '../widgets/tv_focus.dart';
 import '../widgets/tv_picker_dialogs.dart';
@@ -41,12 +42,10 @@ class _AnnouncementFormScreenState extends State<AnnouncementFormScreen> {
 
   /// Parse a previously formatted time ('9:46 PM') back into a TimeOfDay.
   TimeOfDay _parseTime(String s) {
-    final m = RegExp(r'^(\d{1,2}):(\d{2})\s*([AP]M)$').firstMatch(s.trim());
-    if (m == null) return TimeOfDay.now();
-    var h = int.parse(m.group(1)!);
-    final pm = m.group(3) == 'PM';
-    h = h % 12 + (pm ? 12 : 0);
-    return TimeOfDay(hour: h, minute: int.parse(m.group(2)!));
+    final m = timeToMinutes(s);
+    return m == null
+        ? TimeOfDay.now()
+        : TimeOfDay(hour: m ~/ 60, minute: m % 60);
   }
 
   Future<void> pickDate() async {
@@ -94,6 +93,7 @@ class _AnnouncementFormScreenState extends State<AnnouncementFormScreen> {
         announcements[i] = item;
       }
     });
+    saveStore(); // survive app close/restart
 
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(editing

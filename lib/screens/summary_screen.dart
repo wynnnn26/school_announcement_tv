@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/sample_data.dart';
+import '../data/store.dart';
 import '../models/announcement.dart';
 import '../widgets/announcement_card.dart';
 import '../widgets/header_widget.dart';
@@ -116,6 +117,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
     );
     if (ok != true) return;
     setState(() => announcements.remove(a));
+    saveStore(); // survive app close/restart
     if (mounted) {
       // The pressed Delete button no longer exists: put the remote's focus
       // back on the search field so navigation continues from a known place.
