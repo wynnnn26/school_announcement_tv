@@ -17,7 +17,13 @@ Future<TimeOfDay?> showTvTimePicker(BuildContext context,
     showDialog<TimeOfDay>(
         context: context, builder: (_) => _TvTimePicker(initial: initial));
 
-final _years = [for (var y = 2020; y <= 2035; y) '$y'];
+// Written out as a const so opening the Date picker allocates nothing: on
+// the device the heap sits near its cap and this list's lazy init was the
+// exact allocation that died (round-2 report 8.2.1).
+const _years = [
+  '2020', '2021', '2022', '2023', '2024', '2025', '2026', '2027',
+  '2028', '2029', '2030', '2031', '2032', '2033', '2034', '2035',
+];
 
 /// One labelled dropdown row inside a picker dialog. Only the first field
 /// should pass `autofocus: true` so the remote always starts somewhere sane.

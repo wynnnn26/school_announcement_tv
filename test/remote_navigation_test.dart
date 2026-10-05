@@ -132,8 +132,9 @@ void main() {
     await t.enterText(find.byType(TextFormField).at(0), 'Remote Test Event');
     await t.pumpAndSettle();
 
-    // OK advances Title → Description.
-    await pressOk(t);
+    // Down advances Title → Description (OK now opens the keyboard instead
+    // of moving on — see usesTextInput).
+    await press(t, LogicalKeyboardKey.arrowDown);
     expect(isFocused(t, find.byType(TextFormField).at(1)), isTrue); // Description
     await t.enterText(
         find.byType(TextFormField).at(1), 'Driven by the TV remote only');
@@ -148,7 +149,7 @@ void main() {
     expect(find.text('Select date'), findsOneWidget);
     expect(
         isFocused(
-            t, inDialog(find.byType(DropdownButtonFormField<String>).at(0))),
+            t, inDialog(find.byType(DropdownButtonFormField<String>)).at(0)),
         isTrue,
         reason: 'Day field is focused first');
 
@@ -157,7 +158,7 @@ void main() {
     await press(t, LogicalKeyboardKey.arrowDown);
     expect(
         isFocused(
-            t, inDialog(find.byType(DropdownButtonFormField<String>).at(1))),
+            t, inDialog(find.byType(DropdownButtonFormField<String>)).at(1)),
         isTrue,
         reason: 'Down moves Day → Month');
     await pressOk(t);
@@ -172,7 +173,7 @@ void main() {
     await pressOk(t); // pick February
     expect(
         isFocused(
-            t, inDialog(find.byType(DropdownButtonFormField<String>).at(1))),
+            t, inDialog(find.byType(DropdownButtonFormField<String>)).at(1)),
         isTrue,
         reason: 'focus returns to the Month field');
 
@@ -192,7 +193,7 @@ void main() {
     await pressOk(t); // pick the focused day
     expect(
         isFocused(
-            t, inDialog(find.byType(DropdownButtonFormField<String>).at(0))),
+            t, inDialog(find.byType(DropdownButtonFormField<String>)).at(0)),
         isTrue,
         reason: 'focus returns to the Day field');
 
@@ -217,7 +218,7 @@ void main() {
     expect(find.text('Select time'), findsOneWidget);
     expect(
         isFocused(
-            t, inDialog(find.byType(DropdownButtonFormField<String>).at(0))),
+            t, inDialog(find.byType(DropdownButtonFormField<String>)).at(0)),
         isTrue,
         reason: 'Hour field is focused first');
 
@@ -225,19 +226,19 @@ void main() {
     await press(t, LogicalKeyboardKey.arrowDown);
     expect(
         isFocused(
-            t, inDialog(find.byType(DropdownButtonFormField<String>).at(1))),
+            t, inDialog(find.byType(DropdownButtonFormField<String>)).at(1)),
         isTrue);
     await pressOk(t); // open the Minute menu
     expect(
         isFocused(
-            t, inDialog(find.byType(DropdownButtonFormField<String>).at(1))),
+            t, inDialog(find.byType(DropdownButtonFormField<String>)).at(1)),
         isFalse,
         reason: 'Minute menu took focus');
     await press(t, LogicalKeyboardKey.arrowDown);
     await pressOk(t); // pick a minute
     expect(
         isFocused(
-            t, inDialog(find.byType(DropdownButtonFormField<String>).at(1))),
+            t, inDialog(find.byType(DropdownButtonFormField<String>)).at(1)),
         isTrue,
         reason: 'focus returns to the Minute field');
 
@@ -321,6 +322,10 @@ void main() {
     // Confirming works with the Enter key as well as OK/Select.
     await t.sendKeyEvent(LogicalKeyboardKey.enter);
     await t.pumpAndSettle();
+    // ScaffoldMessenger queues snackbars: the update snackbar from a few
+    // presses ago is still on its 4s timer — let it expire so ours shows.
+    await t.pump(const Duration(seconds: 5));
+    await t.pumpAndSettle();
     expect(find.text('Announcement deleted.'), findsOneWidget);
     expect(find.text('No records match your search.'), findsOneWidget);
     expect(isFocused(t, find.byType(TextField)), isTrue,
@@ -335,10 +340,7 @@ void main() {
     expect(isFocused(t, find.byTooltip('Manage announcements')), isTrue);
 
     await close(t);
-  },
-      // The full picker/dialog flow hangs mid-run; deferred (P3). Bounded
-      // remote coverage lives in test/remote_smoke_test.dart.
-      skip: true);
+  });
 
   testWidgets('remote scrolls the narrow dashboard to the bottom and back',
       (t) async {

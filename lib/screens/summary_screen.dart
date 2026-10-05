@@ -271,6 +271,9 @@ class _SummaryScreenState extends State<SummaryScreen> {
                 flex: 2,
                 child: TvFocusable(
                   focusable: false,
+                  // Down walks filter → filter → View below, instead of
+                  // jumping spatially onto a random card button.
+                  moveFocusOnUpDown: true,
                   child: dropdown(typeFilter, ['All', ...itemTypes],
                       (v) => setState(() => typeFilter = v ?? 'All')),
                 )),
@@ -279,6 +282,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
                 flex: 2,
                 child: TvFocusable(
                   focusable: false,
+                  moveFocusOnUpDown: true,
                   child: dropdown(categoryFilter, ['All', ...categories],
                       (v) => setState(() => categoryFilter = v ?? 'All')),
                 )),
