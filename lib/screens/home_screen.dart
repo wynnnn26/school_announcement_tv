@@ -31,7 +31,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget section(String title, IconData icon, List<Widget> kids, String empty) {
     if (kids.isEmpty) {
       kids = [
-        Text(empty, style: const TextStyle(fontSize: 20, color: Colors.black54))
+        Text(
+          empty,
+          style: const TextStyle(
+            fontSize: 20,
+            color: Colors.black54,
+          ),
+        ),
       ];
     }
     return Card(
