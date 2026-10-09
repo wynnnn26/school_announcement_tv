@@ -18,6 +18,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // OK on the featured notice drops its description down (see build).
+  bool _featuredOpen = false;
+
   List<Announcement> ofType(String t) =>
       announcements.where((a) => a.type == t).toList();
 
@@ -147,11 +150,15 @@ class _HomeScreenState extends State<HomeScreen> {
         final featured = announcements.where((a) => a.isFeatured).firstOrNull;
 
         final header = const HeaderWidget();
-        // The big banner only when there is vertical room for it; the TV's
-        // short body needs that space for the three-column board below.
+        // The notice fills the whole first screen now, so it always renders
+        // at full size; OK drops the description down inside it.
         final featuredCard = TvFocusable(
+            key: const Key('featuredNotice'),
+            onPressed: featured == null
+                ? null
+                : () => setState(() => _featuredOpen = !_featuredOpen),
             child: FeaturedAnnouncementCard(
-                item: featured, tall: wide && c.maxHeight >= 620));
+                item: featured, tall: wide, expanded: _featuredOpen));
         final newsSection = section(
             'Announcements (${news.length})',
             Icons.campaign,
@@ -187,44 +194,54 @@ class _HomeScreenState extends State<HomeScreen> {
             'No reminders.');
         const gap = SizedBox(height: 16);
 
-        if (wide) {
-          // One scrollable page: a TV body (540 logical minus the AppBar) is
-          // too short for a fixed board, and TvFocusable scrolls the focused
-          // card into view. IntrinsicHeight keeps the three panels level.
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  header,
-                  gap,
-                  featuredCard,
-                  gap,
-                  IntrinsicHeight(
-                    // stretch: all three panels start at the same y (the
-                    // default center left them staggered when heights differ).
-                    child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(child: newsSection),
-                          Expanded(child: eventSection),
-                          Expanded(child: scheduleSection),
-                        ]),
-                  ),
-                  reminderSection,
-                ]),
-          );
-        }
-        // Narrow or short window: everything stacks and the page scrolls.
-        return ListView(padding: const EdgeInsets.all(16), children: [
-          header,
-          gap,
-          featuredCard,
-          gap,
-          newsSection,
-          eventSection,
-          scheduleSection,
-          reminderSection,
+        // One scrollable page: a TV body (540 logical minus the AppBar) is
+        // too short for a fixed board, and TvFocusable scrolls the focused
+        // card into view. IntrinsicHeight keeps the three panels level.
+        final board = wide
+            ? IntrinsicHeight(
+                // stretch: all three panels start at the same y (the
+                // default center left them staggered when heights differ).
+                child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(child: newsSection),
+                      Expanded(child: eventSection),
+                      Expanded(child: scheduleSection),
+                    ]),
+              )
+            : Column(children: [newsSection, eventSection, scheduleSection]);
+
+        // Header (logo + live clock) stays fixed; below it the notice fills
+        // the entire first screen and the three columns sit underneath the
+        // fold — scrolling down reveals them right under the banner.
+        return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              child: header),
+          Expanded(
+            child: LayoutBuilder(builder: (context, inner) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Viewport height minus this scroll area's top padding:
+                      // the banner ends exactly at the screen edge, so the
+                      // board only appears after scrolling down. minHeight,
+                      // never height: an open description panel grows the
+                      // banner and scrolls the page instead of clipping.
+                      ConstrainedBox(
+                        constraints:
+                            BoxConstraints(minHeight: inner.maxHeight - 20),
+                        child: featuredCard,
+                      ),
+                      gap,
+                      board,
+                      reminderSection,
+                    ]),
+              );
+            }),
+          ),
         ]);
       }),
     );

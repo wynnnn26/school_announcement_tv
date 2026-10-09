@@ -5,7 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/announcement.dart';
 import 'sample_data.dart';
 
-const storeKey = 'announcements_v1';
+// v2: the featured notice went full-screen + OK dropdown (fresh samples
+// reseed once, replacing the earlier test entries on an installed TV).
+const storeKey = 'announcements_v2';
 
 /// Restore the saved list, called once from main() before runApp.
 /// First run (no key yet) keeps the sample seeds and writes them once, so

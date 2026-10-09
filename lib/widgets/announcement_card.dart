@@ -14,6 +14,20 @@ import 'header_widget.dart';
       _ => (Icons.campaign, navy),
     };
 
+/// Icon + label used inside the featured notice's dropdown panel.
+Widget _heroDetail(IconData icon, String text, Color color, double s) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: color, size: 22 * s),
+        const SizedBox(width: 6),
+        Text(text,
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 22 * s,
+                fontWeight: FontWeight.w600)),
+      ],
+    );
+
 /// Regular announcement card: icon, category, title, description, date.
 class AnnouncementCard extends StatelessWidget {
   final Announcement item;
@@ -55,11 +69,16 @@ class AnnouncementCard extends StatelessWidget {
 }
 
 /// The large highlighted card. `tall` = fixed TV height and full-size text.
+/// `expanded` = the OK press dropped the full description panel down.
 class FeaturedAnnouncementCard extends StatelessWidget {
   final Announcement? item;
   final bool tall;
+  final bool expanded;
   const FeaturedAnnouncementCard(
-      {super.key, required this.item, required this.tall});
+      {super.key,
+      required this.item,
+      required this.tall,
+      this.expanded = false});
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +102,10 @@ class FeaturedAnnouncementCard extends StatelessWidget {
       ),
       // Stack: red star texture behind urgent notices only, so a regular
       // featured item shows the clean navy → light-blue gradient.
-      child: Stack(children: [
+      // passthrough: the incoming minHeight (the full-screen hero box) must
+      // reach the Center below, or the content would hug the top of the
+      // banner instead of sitting in its middle.
+      child: Stack(fit: StackFit.passthrough, children: [
         if (important)
           Positioned.fill(
             child: ClipRRect(
@@ -116,22 +138,79 @@ class FeaturedAnnouncementCard extends StatelessWidget {
                       ),
                     ]),
                     Text(a.title.toUpperCase(),
-                        maxLines: tall ? 1 : 3,
+                        maxLines: tall ? 2 : 3,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: Colors.white,
                             fontSize: 46 * s,
                             fontWeight: FontWeight.bold)),
-                    Text(a.description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style:
-                            TextStyle(color: Colors.white, fontSize: 26 * s)),
                     const SizedBox(height: 6),
                     Text(a.date,
                         style: TextStyle(color: accent, fontSize: 22 * s)),
+                    // OK drops the full description down inside the banner.
+                    // No collapsed preview: the panel is the description, so
+                    // the banner stays short enough to fit the fixed-header
+                    // screen and "Press OK for details" is never pushed off.
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOut,
+                      alignment: Alignment.topCenter,
+                      child: expanded
+                          ? Container(
+                              margin: const EdgeInsets.only(top: 14),
+                              padding: const EdgeInsets.all(18),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.16),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                    color: accent.withValues(alpha: 0.7),
+                                    width: 2),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ConstrainedBox(
+                                    constraints:
+                                        const BoxConstraints(maxWidth: 760),
+                                    child: Text(a.description,
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 24 * s)),
+                                  ),
+                                  if (a.time.isNotEmpty ||
+                                      a.location.isNotEmpty) ...[
+                                    const SizedBox(height: 10),
+                                    Wrap(
+                                      spacing: 18,
+                                      runSpacing: 6,
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
+                                      children: [
+                                        if (a.time.isNotEmpty)
+                                          _heroDetail(
+                                              Icons.schedule, a.time, accent, s),
+                                        if (a.location.isNotEmpty)
+                                          _heroDetail(Icons.place, a.location,
+                                              accent, s),
+                                      ],
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                        expanded
+                            ? 'Press OK to close'
+                            : 'Press OK for details',
+                        style: TextStyle(
+                            color: accent.withValues(alpha: 0.9),
+                            fontSize: 18 * s,
+                            fontWeight: FontWeight.w600)),
                   ]),
           ),
         ),

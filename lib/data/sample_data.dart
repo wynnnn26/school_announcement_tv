@@ -26,53 +26,53 @@ final List<Announcement> announcements = [
   // ---- Announcements (4)
   Announcement(
     id: 1, type: 'Announcement', category: 'Important', isFeatured: true,
-    title: 'Midterm Examination Week',
-    description: 'Examinations begin this week. Review your schedule and prepare early.',
+    title: 'Final Examination Week',
+    description: 'Second-quarter finals begin. Check your room assignments and arrive early.',
     date: formatDate(_demoFire), time: formatClock(_demoFire),
     location: 'All Classrooms',
   ),
   Announcement(
     id: 2, type: 'Announcement', category: 'General',
     title: 'School ID Reminder',
-    description: 'All students are required to wear their school ID inside the campus.',
+    description: 'Wear your school ID at all times while inside the campus.',
     date: _minusDays(3), location: 'School Gate',
   ),
   Announcement(
     id: 3, type: 'Announcement', category: 'Academic',
-    title: 'Enrollment Announcement',
-    description: 'Second-quarter enrollment is open. Please visit the registrar for your forms.',
+    title: 'Enrollment for Third Quarter',
+    description: 'Enrollment opens next week. Visit the registrar to pick up your forms.',
     date: _plusDays(5), time: '9:00 AM', location: 'Registrar’s Office',
   ),
   Announcement(
     id: 4, type: 'Announcement', category: 'Student Affairs',
-    title: 'Library Reminder',
-    description: 'Return or renew borrowed books before the midterm break.',
+    title: 'Library Clearance Drive',
+    description: 'Return or renew borrowed books before the quarter ends.',
     date: _today, location: 'School Library', // date-only match demo
   ),
 
   // ---- Events (4)
   Announcement(
     id: 5, type: 'Event', category: 'Event',
-    title: 'School Foundation Day',
+    title: 'Founders’ Day Celebration',
     description: 'Celebrate the school’s founding anniversary with the whole CHCCI community.',
     date: _plusDays(10), time: '8:00 AM – 4:00 PM', location: 'School Gymnasium',
   ),
   Announcement(
-    id: 6, type: 'Event', category: 'Event',
-    title: 'Intramurals',
-    description: 'Inter-section games begin. Cheer for your section!',
-    date: _plusDays(14), time: '7:30 AM', location: 'Sports Oval',
+    id: 6, type: 'Event', category: 'Academic',
+    title: 'Inter-Section Quiz Bee',
+    description: 'Sections compete in science, math and general knowledge.',
+    date: _plusDays(14), time: '1:00 PM', location: 'Auditorium',
   ),
   Announcement(
-    id: 7, type: 'Event', category: 'Academic',
-    title: 'Student Orientation',
-    description: 'Orientation for new students and transferees of the School of Computer Studies.',
-    date: _plusDays(21), time: '1:00 PM', location: 'Auditorium',
+    id: 7, type: 'Event', category: 'Student Affairs',
+    title: 'Student Leadership Summit',
+    description: 'Officers and aspiring leaders train on teamwork and service.',
+    date: _plusDays(21), time: '8:30 AM', location: 'Covered Court',
   ),
   Announcement(
     id: 8, type: 'Event', category: 'Academic',
     title: 'Recognition Day',
-    description: 'Top students and organizations are recognized for the first quarter.',
+    description: 'Top students and organizations are honored for the quarter.',
     date: _plusDays(30), time: '2:00 PM', location: 'Auditorium',
   ),
 
@@ -92,7 +92,7 @@ final List<Announcement> announcements = [
   Announcement(
     id: 11, type: 'Schedule', category: 'General',
     title: 'Lunch Break',
-    description: 'Meal break. Observe cleanliness in the cafeteria.',
+    description: 'Meal break. Keep the cafeteria clean.',
     time: '12:00 PM', location: 'Cafeteria',
   ),
   Announcement(
@@ -112,8 +112,8 @@ final List<Announcement> announcements = [
   Announcement(
     id: 14, type: 'Reminder', category: 'Reminder',
     title: 'Submit clearance forms',
-    description: 'Clearance for the second quarter — submit before Friday.',
-    location: 'Registrar’s Office',
+    description: 'Second-quarter clearance is ongoing.',
+    location: 'To the Registrar',
   ),
   Announcement(
     id: 15, type: 'Reminder', category: 'Reminder',

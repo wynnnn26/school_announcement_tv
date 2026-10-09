@@ -20,7 +20,7 @@ void main() {
     expect(find.text('SCHOOL ANNOUNCEMENT BOARD'), findsOneWidget);
     expect(find.text('CHCCI • School Announcement TV'), findsOneWidget); // AppBar branding
     expect(find.text('School of Computer Studies'), findsOneWidget); // header branding
-    expect(find.text('MIDTERM EXAMINATION WEEK'), findsOneWidget); // featured
+    expect(find.text('FINAL EXAMINATION WEEK'), findsOneWidget); // featured
     expect(find.textContaining('Upcoming Events'), findsOneWidget);
     expect(find.text('Today\'s Schedule'), findsOneWidget);
     await close(t);
@@ -44,15 +44,16 @@ void main() {
     await launch(t);
     await t.tap(find.byTooltip('Manage announcements'));
     await t.pumpAndSettle();
-    expect(find.text('Midterm Examination Week'), findsOneWidget);
+    expect(find.text('Final Examination Week'), findsOneWidget);
 
     // Search narrows the grid to one record (scope past the text field itself).
-    await t.enterText(find.byType(TextField).first, 'Intramurals');
+    await t.enterText(find.byType(TextField).first, 'Inter-Section Quiz Bee');
     await t.pumpAndSettle();
     expect(
-        find.descendant(of: find.byType(GridView), matching: find.text('Intramurals')),
+        find.descendant(
+            of: find.byType(GridView), matching: find.text('Inter-Section Quiz Bee')),
         findsOneWidget);
-    expect(find.text('Midterm Examination Week'), findsNothing);
+    expect(find.text('Final Examination Week'), findsNothing);
 
     // No hit shows the empty-search message instead of an empty grid.
     await t.enterText(find.byType(TextField).first, 'zzz-no-match');

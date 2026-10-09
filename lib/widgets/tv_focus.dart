@@ -128,7 +128,13 @@ class _TvFocusableState extends State<TvFocusable> {
       if (viewport is! RenderBox || !viewport.attached) return;
       final child = box.localToGlobal(Offset.zero) & box.size;
       final view = viewport.localToGlobal(Offset.zero) & viewport.size;
-      if (view.contains(child.topLeft) && view.contains(child.bottomRight)) {
+      // Inclusive edges: Rect.contains excludes right/bottom, so a card
+      // ending exactly at the viewport edge (the full-screen notice does)
+      // read as "outside" and got yanked out of view on focus.
+      if (child.top >= view.top &&
+          child.bottom <= view.bottom &&
+          child.left >= view.left &&
+          child.right <= view.right) {
         return; // already fully visible
       }
       Scrollable.ensureVisible(context);
